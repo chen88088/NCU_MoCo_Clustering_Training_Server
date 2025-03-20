@@ -17,7 +17,7 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 暴露 API Port
-EXPOSE 8007
+EXPOSE 8009
 
 # 啟動 FastAPI 應用程式
-CMD ["uvicorn", "NCURSS_INFERENCE_SERVER:app", "--host", "0.0.0.0", "--port", "8007"]
+CMD ["uvicorn", "NCU_MoCo_Clustering_Training_Server:app", "--host", "0.0.0.0", "--port", "8009"]

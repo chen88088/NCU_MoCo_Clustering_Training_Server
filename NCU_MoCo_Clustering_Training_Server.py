@@ -88,11 +88,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# # PVC 掛載路徑
-# STORAGE_PATH = "/mnt/storage"
+# PVC 掛載路徑
+STORAGE_PATH = "/mnt/storage"
 
-# PVC 掛載路徑 (本地測試用)
-STORAGE_PATH = "/mnt/storage/test/test_clustering_training"
+# # PVC 掛載路徑 (本地測試用)
+# STORAGE_PATH = "/mnt/storage/test/test_clustering_training"
 
 
 # MinIO 設定
@@ -178,9 +178,9 @@ async def register_dag_and_logger_and_dvc_worker(request: DagRequest):
     if not dag_id or not execution_id:
         raise HTTPException(status_code=400, detail="DAG_ID and EXECUTION_ID are required.")
     
-    # # 檢查 PVC 掛載狀態
-    # if not is_pvc_mounted():
-    #     raise HTTPException(status_code=500, detail="PVC is not mounted.")
+    # 檢查 PVC 掛載狀態
+    if not is_pvc_mounted():
+        raise HTTPException(status_code=500, detail="PVC is not mounted.")
 
     # 組合路徑：/mnt/storage/{dag_id}_{execution_id}
     dag_root_folder_path = os.path.join(STORAGE_PATH, f"{dag_id}_{execution_id}")
@@ -238,10 +238,10 @@ async def setup_folders_for_training(request: DagRequest):
     dvc_worker = dvc_manager.get_worker(dag_id, execution_id)
     
     
-    # # 檢查 PVC 掛載狀態
-    # if not is_pvc_mounted():
-    #     raise HTTPException(status_code=500, detail="PVC is not mounted.")
-    # logger.info("PVC IS MOUNTED!!!!")
+    # 檢查 PVC 掛載狀態
+    if not is_pvc_mounted():
+        raise HTTPException(status_code=500, detail="PVC is not mounted.")
+    logger.info("PVC IS MOUNTED!!!!")
 
     # 組合路徑：/mnt/storage/{dag_id}_{execution_id}
     dag_root_folder_path = os.path.join(STORAGE_PATH, f"{dag_id}_{execution_id}")
@@ -266,24 +266,24 @@ async def setup_folders_for_training(request: DagRequest):
 
         # 2. 在 dag_root_folder 内 git clone
         if not os.path.exists(repo_inference_path):
-            # # 取得環境變數中的 GITHUB_TOKEN
-            # github_token = os.getenv("GITHUB_TOKEN")
-            # if not github_token:
-            #     raise Exception("GITHUB_TOKEN not found in environment variables.")
+            # 取得環境變數中的 GITHUB_TOKEN
+            github_token = os.getenv("GITHUB_TOKEN")
+            if not github_token:
+                raise Exception("GITHUB_TOKEN not found in environment variables.")
             
-            # # 解析 repo 的 owner/repo_name
-            # if "github.com" in code_repo_url:
-            #     repo_path = code_repo_url.split("github.com/")[-1]
-            # else:
-            #     raise HTTPException(status_code=400, detail="Invalid GitHub repository URL")
+            # 解析 repo 的 owner/repo_name
+            if "github.com" in code_repo_url:
+                repo_path = code_repo_url.split("github.com/")[-1]
+            else:
+                raise HTTPException(status_code=400, detail="Invalid GitHub repository URL")
 
-            # # # 使用 subprocess.run() 執行 git clone 指令
-            # # # **修正：直接內嵌 GITHUB_TOKEN 到 URL 中**
-            # # repo_url = f"https://{github_token}:x-oauth-basic@github.com/chen88088/NCU-RSS-1.5.git"
-            # repo_url = f"https://{github_token}:x-oauth-basic@github.com/{repo_path}"
+            # # 使用 subprocess.run() 執行 git clone 指令
+            # # **修正：直接內嵌 GITHUB_TOKEN 到 URL 中**
+            # repo_url = f"https://{github_token}:x-oauth-basic@github.com/chen88088/NCU-RSS-1.5.git"
+            repo_url = f"https://{github_token}:x-oauth-basic@github.com/{repo_path}"
 
                         
-            repo_url = code_repo_url
+            # repo_url = code_repo_url
 
             clone_command = ["git", "clone", repo_url, repo_inference_path]
             result = subprocess.run(clone_command, capture_output=True, text=True)
@@ -330,9 +330,9 @@ async def download_preprocessing_result(request: DagRequest):
 
     dvc_worker = dvc_manager.get_worker(dag_id, execution_id)
 
-    # # 檢查 PVC 掛載狀態
-    # if not is_pvc_mounted():
-    #     raise HTTPException(status_code=500, detail="PVC is not mounted.")
+    # 檢查 PVC 掛載狀態
+    if not is_pvc_mounted():
+        raise HTTPException(status_code=500, detail="PVC is not mounted.")
 
     try:
         # 設定本地 DAG 路徑
@@ -395,7 +395,6 @@ async def download_preprocessing_result(request: DagRequest):
         shutil.move(str(source_temp_download_files_path), str(target_result_path))
 
         logger.info(f"Successfully moved preprocessing results to {target_result_path}")
-
 
         return {
             "status": "success",
@@ -568,8 +567,10 @@ async def execute_inference_scripts(request: DagRequest):
     
     # 組合工作目錄
     working_dir = f"/mnt/storage/{dag_id}_{execution_id}/NCU_MoCo_Clustering_Training/MoCo_training"
-    output_dir = f"{working_dir}/data/train_test/For_training_testing/320x320/train_test"
-    
+    output_dir = Path(f"{working_dir}/result/v1")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     # 定義要執行的腳本
     scripts_to_run = [
         "python main.py --task v1 --weight_decay 0.0001 --brightness 0.4 --contrast 0.4 --saturation 0.4 --hue 0.4 --lr_mode exponential --lr_interval 120,160 --data_path ./data --gpus 0 --history --summary --resume"
@@ -678,6 +679,7 @@ def wait_for_job_completion(batch_v1, job_name, namespace, logger, timeout=3600)
                 except Exception as e:
                     logger.error(f"Failed to get logs for {pod_name}: {str(e)}")
 
+
             return
         
         elif job_status.status.failed is not None and job_status.status.failed > 0:
@@ -696,7 +698,7 @@ def record_clustering_training_result_to_mlflow(request: DagRequest, output_dir:
     dag_instance_unique_id = f'{request.DAG_ID}_{request.EXECUTION_ID}'
 
     # 找到產生的結果資料夾
-    result_dir = "result/v1"
+    result_dir = output_dir
     all_subdirs = [d for d in os.listdir(result_dir) if os.path.isdir(os.path.join(result_dir, d))]
     latest_run = max(all_subdirs, key=lambda d: os.path.getmtime(os.path.join(result_dir, d)))
     run_folder = os.path.join(result_dir, latest_run)
