@@ -45,11 +45,11 @@ MACHINE_IP = "10.52.52.136"
 MACHINE_PORT = 8085
 MACHINE_CAPACITY = 2
 
-# class RegisterRequest(BaseModel):
-#     machine_id: str
-#     ip: str
-#     port: int
-#     capacity: int
+class RegisterRequest(BaseModel):
+    machine_id: str
+    ip: str
+    port: int
+    capacity: int
 
 
 @asynccontextmanager
