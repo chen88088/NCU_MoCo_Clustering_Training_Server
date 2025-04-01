@@ -4,7 +4,7 @@ import logging
 import requests
 import subprocess
 from pydantic import BaseModel
-from typing import List
+from typing import List, Any, Dict
 from pathlib import Path
 import os
 import shutil
@@ -120,7 +120,7 @@ class DagRequest(BaseModel):
     MODEL_VERSION: str
     DEPLOYER_NAME: str
     DEPLOYER_EMAIL: str
-    PIPELINE_CONFIG: Dict[str, str]
+    PIPELINE_CONFIG: Dict[str, Any]
 
 
 # 檢查 PVC 是否已掛載
