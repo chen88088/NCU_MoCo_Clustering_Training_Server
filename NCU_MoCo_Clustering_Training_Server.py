@@ -421,7 +421,7 @@ async def download_preprocessing_result(request: DagRequest):
 #     if not dag_id or not execution_id:
 #         raise HTTPException(status_code=400, detail="DAG_ID and EXECUTION_ID are required.")
 
-#     # 获取或初始化 Logger 和 DVCWorker
+
 #     logger = logger_manager.get_logger(dag_id, execution_id)
 
 #     try:
@@ -432,7 +432,7 @@ async def download_preprocessing_result(request: DagRequest):
 
 #         logger.info(f"Modifying config at {config_path} with data: {data}")
 
-#         # 读取并修改配置文件
+
 #         with open(config_path, "r", encoding='utf-8') as file:
 #             config_content = file.read()
 #         config_content = config_content.replace(r'D:\SHP', data["SHP_Path"])
@@ -443,7 +443,7 @@ async def download_preprocessing_result(request: DagRequest):
 #             file.write(config_content)
 #         logger.info(f"Config file {config_path} modified successfully")
 
-#         # 验证文件内容
+
 #         with open(config_path, "r", encoding='utf-8') as file:
 #             verified_content = file.read()
 #         assert data["SHP_Path"] in verified_content, "SHP_Path not updated"
