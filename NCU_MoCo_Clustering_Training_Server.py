@@ -36,7 +36,7 @@ import time
 import json
 import hashlib
 
-# 设置基本的日志配置
+
 logging.basicConfig(level=logging.DEBUG)
 
 SERVER_MANAGER_URL = "http://10.52.52.136:8000"
